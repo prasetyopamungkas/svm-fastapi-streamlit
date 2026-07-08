@@ -29,7 +29,7 @@ for i in range(30):
 
 if st.button("Predict"):
 
-    url="https://svm-fastapi-streamlit-production-6d87.up.railway.app/predict"
+    url="https://svm-fastapi-streamlit-production-8d64.up.railway.app/predict"
 
     response=requests.post(
 
