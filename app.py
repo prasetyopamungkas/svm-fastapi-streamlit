@@ -42,8 +42,14 @@ if st.button("Predict"):
     )
 
     hasil=response.json()
-    st.write(hasil)
-    
+
+    st.write("Status:", response.status_code)
+    st.write("Response:", hasil)
+
+    if response.status_code == 200:
     st.success(f"Prediction : {hasil['prediction']}")
 
     st.metric("Probability",f"{hasil['probability']:.2%}")
+
+    else:
+    st.error("API Error")
