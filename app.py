@@ -1,112 +1,118 @@
-# ==========================
-# HASIL PREDIKSI
-# ==========================
+import streamlit as st
+import requests
 
-st.markdown("<br>", unsafe_allow_html=True)
+st.set_page_config(
+    page_title="Breast Cancer Prediction",
+    page_icon="🩺",
+    layout="wide"
+)
+
+# =============================
+# CSS
+# =============================
 
 st.markdown("""
 <style>
 
-.result-card{
-    background:white;
-    padding:30px;
-    border-radius:20px;
-    box-shadow:0px 8px 20px rgba(0,0,0,0.15);
+.main{
+    background:#F6F8FC;
 }
 
-.result-title{
+.title{
     text-align:center;
-    font-size:28px;
-    font-weight:bold;
     color:#003366;
+    font-size:40px;
+    font-weight:bold;
+}
+
+.subtitle{
+    text-align:center;
+    color:gray;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0px 5px 15px rgba(0,0,0,0.15);
 }
 
 </style>
-""", unsafe_allow_html=True)
+""",unsafe_allow_html=True)
 
-st.markdown('<div class="result-card">', unsafe_allow_html=True)
+# =============================
+# HEADER
+# =============================
 
-st.markdown('<div class="result-title">Prediction Result</div>', unsafe_allow_html=True)
+st.markdown("<div class='title'>🩺 Breast Cancer Prediction</div>",unsafe_allow_html=True)
+
+st.markdown("<div class='subtitle'>Support Vector Machine (SVM)</div>",unsafe_allow_html=True)
 
 st.markdown("---")
 
+st.markdown("<div class='card'>",unsafe_allow_html=True)
+
+st.subheader("Patient Information")
+
 col1,col2,col3=st.columns(3)
 
-prob=hasil["probability"]*100
+inputs=[]
 
-with col1:
+for i in range(30):
 
-    if hasil["prediction"]==1:
-
-        st.markdown(
-            """
-            <h2 style='color:red;text-align:center;'>
-            🔴 Malignant
-            </h2>
-            """,
-            unsafe_allow_html=True
-        )
-
+    if i%3==0:
+        with col1:
+            value=st.number_input(f"Feature {i+1}",0.0)
+    elif i%3==1:
+        with col2:
+            value=st.number_input(f"Feature {i+1}",0.0)
     else:
+        with col3:
+            value=st.number_input(f"Feature {i+1}",0.0)
 
-        st.markdown(
-            """
-            <h2 style='color:green;text-align:center;'>
-            🟢 Benign
-            </h2>
-            """,
-            unsafe_allow_html=True
-        )
+    inputs.append(value)
 
-with col2:
-
-    st.metric(
-        label="Probability",
-        value=f"{prob:.2f}%"
-    )
-
-with col3:
-
-    if hasil["prediction"]==1:
-
-        st.metric(
-            label="Risk Level",
-            value="High"
-        )
-
-    else:
-
-        st.metric(
-            label="Risk Level",
-            value="Low"
-        )
-
-st.progress(prob/100)
+st.markdown("</div>",unsafe_allow_html=True)
 
 st.write("")
 
-if hasil["prediction"]==1:
+colA,colB,colC=st.columns([2,1,2])
 
-    st.warning(
-        """
-### ⚠ Recommendation
+with colB:
+    predict=st.button("🔍 Predict",use_container_width=True)
 
-The prediction indicates **Malignant**.
+if predict:
 
-Please consult a medical professional for further examination.
-"""
-    )
+    url="https://svm-fastapi-streamlit-production-3f17.up.railway.app/predict"
 
-else:
+    with st.spinner("Predicting..."):
 
-    st.success(
-        """
-### ✅ Recommendation
+        try:
 
-The prediction indicates **Benign**.
+            response=requests.post(
+                url,
+                json={"features":inputs},
+                timeout=30
+            )
 
-Continue routine medical check-ups as recommended by healthcare professionals.
-"""
-    )
+            hasil=response.json()
 
-st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown("---")
+
+            if hasil["prediction"]==1:
+
+                st.error("## 🔴 Malignant")
+
+            else:
+
+                st.success("## 🟢 Benign")
+
+            st.metric(
+                "Prediction Probability",
+                f"{hasil['probability']:.2%}"
+            )
+
+        except Exception as e:
+
+            st.error(e)
