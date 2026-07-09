@@ -96,22 +96,62 @@ if predict:
                 timeout=30
             )
 
-            hasil=response.json()
+                        hasil = response.json()
 
             st.markdown("---")
 
-            if hasil["prediction"]==1:
+            prob = hasil["probability"] * 100
 
-                st.error("## 🔴 Malignant")
+            if hasil["prediction"] == 1:
+
+                warna = "#ffebee"
+                border = "#e53935"
+                status = "🔴 MALIGNANT"
+                risk = "HIGH RISK"
+                pesan = "Segera konsultasikan hasil ini kepada tenaga medis untuk pemeriksaan lebih lanjut."
 
             else:
 
-                st.success("## 🟢 Benign")
+                warna = "#e8f5e9"
+                border = "#43a047"
+                status = "🟢 BENIGN"
+                risk = "LOW RISK"
+                pesan = "Kemungkinan termasuk kategori Benign. Tetap lakukan pemeriksaan kesehatan secara berkala."
 
-            st.metric(
-                "Prediction Probability",
-                f"{hasil['probability']:.2%}"
-            )
+            st.markdown(f"""
+            <div style="
+            background:{warna};
+            padding:30px;
+            border-radius:20px;
+            border-left:10px solid {border};
+            box-shadow:0px 6px 15px rgba(0,0,0,0.2);
+            ">
+
+            <h1 style="text-align:center;color:{border};">
+            {status}
+            </h1>
+
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.write("")
+
+            col1,col2,col3=st.columns(3)
+
+            with col1:
+                st.metric("Prediction", status)
+
+            with col2:
+                st.metric("Probability", f"{prob:.2f}%")
+
+            with col3:
+                st.metric("Risk Level", risk)
+
+            st.write("")
+
+            st.progress(prob/100)
+
+            st.info(pesan)
 
         except Exception as e:
 
