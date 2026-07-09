@@ -1,118 +1,112 @@
-import streamlit as st
-import requests
+# ==========================
+# HASIL PREDIKSI
+# ==========================
 
-st.set_page_config(
-    page_title="Breast Cancer Prediction",
-    page_icon="🩺",
-    layout="wide"
-)
-
-# =============================
-# CSS
-# =============================
+st.markdown("<br>", unsafe_allow_html=True)
 
 st.markdown("""
 <style>
 
-.main{
-    background:#F6F8FC;
-}
-
-.title{
-    text-align:center;
-    color:#003366;
-    font-size:40px;
-    font-weight:bold;
-}
-
-.subtitle{
-    text-align:center;
-    color:gray;
-    margin-bottom:20px;
-}
-
-.card{
+.result-card{
     background:white;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0px 5px 15px rgba(0,0,0,0.15);
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0px 8px 20px rgba(0,0,0,0.15);
+}
+
+.result-title{
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:#003366;
 }
 
 </style>
-""",unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# =============================
-# HEADER
-# =============================
+st.markdown('<div class="result-card">', unsafe_allow_html=True)
 
-st.markdown("<div class='title'>🩺 Breast Cancer Prediction</div>",unsafe_allow_html=True)
-
-st.markdown("<div class='subtitle'>Support Vector Machine (SVM)</div>",unsafe_allow_html=True)
+st.markdown('<div class="result-title">Prediction Result</div>', unsafe_allow_html=True)
 
 st.markdown("---")
 
-st.markdown("<div class='card'>",unsafe_allow_html=True)
-
-st.subheader("Patient Information")
-
 col1,col2,col3=st.columns(3)
 
-inputs=[]
+prob=hasil["probability"]*100
 
-for i in range(30):
+with col1:
 
-    if i%3==0:
-        with col1:
-            value=st.number_input(f"Feature {i+1}",0.0)
-    elif i%3==1:
-        with col2:
-            value=st.number_input(f"Feature {i+1}",0.0)
+    if hasil["prediction"]==1:
+
+        st.markdown(
+            """
+            <h2 style='color:red;text-align:center;'>
+            🔴 Malignant
+            </h2>
+            """,
+            unsafe_allow_html=True
+        )
+
     else:
-        with col3:
-            value=st.number_input(f"Feature {i+1}",0.0)
 
-    inputs.append(value)
+        st.markdown(
+            """
+            <h2 style='color:green;text-align:center;'>
+            🟢 Benign
+            </h2>
+            """,
+            unsafe_allow_html=True
+        )
 
-st.markdown("</div>",unsafe_allow_html=True)
+with col2:
+
+    st.metric(
+        label="Probability",
+        value=f"{prob:.2f}%"
+    )
+
+with col3:
+
+    if hasil["prediction"]==1:
+
+        st.metric(
+            label="Risk Level",
+            value="High"
+        )
+
+    else:
+
+        st.metric(
+            label="Risk Level",
+            value="Low"
+        )
+
+st.progress(prob/100)
 
 st.write("")
 
-colA,colB,colC=st.columns([2,1,2])
+if hasil["prediction"]==1:
 
-with colB:
-    predict=st.button("🔍 Predict",use_container_width=True)
+    st.warning(
+        """
+### ⚠ Recommendation
 
-if predict:
+The prediction indicates **Malignant**.
 
-    url="https://svm-fastapi-streamlit-production-3f17.up.railway.app/predict"
+Please consult a medical professional for further examination.
+"""
+    )
 
-    with st.spinner("Predicting..."):
+else:
 
-        try:
+    st.success(
+        """
+### ✅ Recommendation
 
-            response=requests.post(
-                url,
-                json={"features":inputs},
-                timeout=30
-            )
+The prediction indicates **Benign**.
 
-            hasil=response.json()
+Continue routine medical check-ups as recommended by healthcare professionals.
+"""
+    )
 
-            st.markdown("---")
-
-            if hasil["prediction"]==1:
-
-                st.error("## 🔴 Malignant")
-
-            else:
-
-                st.success("## 🟢 Benign")
-
-            st.metric(
-                "Prediction Probability",
-                f"{hasil['probability']:.2%}"
-            )
-
-        except Exception as e:
-
-            st.error(e)
+st.markdown("</div>", unsafe_allow_html=True)
