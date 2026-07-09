@@ -7,111 +7,112 @@ st.set_page_config(
     layout="wide"
 )
 
-# ==========================
-# SIDEBAR
-# ==========================
+# =============================
+# CSS
+# =============================
 
-st.sidebar.title("🩺 SVM Prediction")
+st.markdown("""
+<style>
 
-st.sidebar.markdown("""
-### Breast Cancer Prediction
+.main{
+    background:#F6F8FC;
+}
 
-Aplikasi ini menggunakan model
-**Support Vector Machine (SVM)** untuk
-memprediksi apakah data termasuk:
+.title{
+    text-align:center;
+    color:#003366;
+    font-size:40px;
+    font-weight:bold;
+}
 
-- 🟢 Benign
-- 🔴 Malignant
+.subtitle{
+    text-align:center;
+    color:gray;
+    margin-bottom:20px;
+}
 
-Masukkan nilai 30 fitur kemudian tekan tombol **Predict**.
-""")
+.card{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0px 5px 15px rgba(0,0,0,0.15);
+}
 
-# ==========================
+</style>
+""",unsafe_allow_html=True)
+
+# =============================
 # HEADER
-# ==========================
+# =============================
 
-st.title("🩺 Breast Cancer Prediction")
+st.markdown("<div class='title'>🩺 Breast Cancer Prediction</div>",unsafe_allow_html=True)
+
+st.markdown("<div class='subtitle'>Support Vector Machine (SVM)</div>",unsafe_allow_html=True)
 
 st.markdown("---")
 
-st.write("### Input Feature")
+st.markdown("<div class='card'>",unsafe_allow_html=True)
 
-# ==========================
-# INPUT
-# ==========================
+st.subheader("Patient Information")
 
-inputs = []
+col1,col2,col3=st.columns(3)
 
-col1, col2 = st.columns(2)
+inputs=[]
 
-with st.form("prediction_form"):
+for i in range(30):
 
-    for i in range(15):
+    if i%3==0:
         with col1:
-            value = st.number_input(
-                f"Feature {i+1}",
-                value=0.0,
-                format="%.4f"
-            )
-            inputs.append(value)
-
-    for i in range(15,30):
+            value=st.number_input(f"Feature {i+1}",0.0)
+    elif i%3==1:
         with col2:
-            value = st.number_input(
-                f"Feature {i+1}",
-                value=0.0,
-                format="%.4f"
-            )
-            inputs.append(value)
+            value=st.number_input(f"Feature {i+1}",0.0)
+    else:
+        with col3:
+            value=st.number_input(f"Feature {i+1}",0.0)
 
-    submitted = st.form_submit_button("🔍 Predict")
+    inputs.append(value)
 
-# ==========================
-# PREDICT
-# ==========================
+st.markdown("</div>",unsafe_allow_html=True)
 
-if submitted:
+st.write("")
 
-    API_URL = "https://svm-fastapi-streamlit-production-3f17.up.railway.app/predict"
+colA,colB,colC=st.columns([2,1,2])
+
+with colB:
+    predict=st.button("🔍 Predict",use_container_width=True)
+
+if predict:
+
+    url="https://svm-fastapi-streamlit-production-3f17.up.railway.app/predict"
 
     with st.spinner("Predicting..."):
 
         try:
 
-            response = requests.post(
-                API_URL,
-                json={"features": inputs},
+            response=requests.post(
+                url,
+                json={"features":inputs},
                 timeout=30
             )
 
-            hasil = response.json()
+            hasil=response.json()
 
-            if response.status_code == 200:
+            st.markdown("---")
 
-                st.markdown("---")
+            if hasil["prediction"]==1:
 
-                c1,c2 = st.columns(2)
-
-                with c1:
-
-                    if hasil["prediction"] == 1:
-                        st.error("🔴 Prediction : Malignant")
-                    else:
-                        st.success("🟢 Prediction : Benign")
-
-                with c2:
-
-                    st.metric(
-                        "Probability",
-                        f"{hasil['probability']:.2%}"
-                    )
+                st.error("## 🔴 Malignant")
 
             else:
 
-                st.error("API Error")
-                st.json(hasil)
+                st.success("## 🟢 Benign")
+
+            st.metric(
+                "Prediction Probability",
+                f"{hasil['probability']:.2%}"
+            )
 
         except Exception as e:
 
-            st.error("Tidak dapat terhubung ke FastAPI")
-            st.exception(e)
+            st.error(e)
